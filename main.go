@@ -3,6 +3,9 @@ package main
 import (
 	"log"
 	"net/http"
+
+	server "github.com.jaxxk.real-time-chat/cmd/chat-server"
+	"github.com.jaxxk.real-time-chat/logger"
 )
 
 var addr = "localhost:8080"
@@ -21,11 +24,16 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	// chatServer := server.NewChatServer()
-	http.HandleFunc("/", serveHome)
+	logger.Init("server.log")
+	chatServer := server.NewChatServer()
+	logger.Info.Println("Starting Chat Server...")
 
+	http.HandleFunc("/", serveHome)
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		server.ServeWs(chatServer, w, r)
+	})
 	err := http.ListenAndServe(addr, nil)
 	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
+		logger.Error.Fatalf("ListenAndServe failed: %v", err)
 	}
 }
