@@ -17,7 +17,7 @@
 
 ## Project Architecture
 ### High-Level Components
-1. **WebSocket Server**:
+1. **Chat**:
    - Handles client connections.
    - Routes messages between users.
    - Manages connection state.
