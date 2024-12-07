@@ -27,6 +27,14 @@
       overflow-y: scroll;
       margin: 0 auto;
     }
+    .received {
+      text-align: left;
+      color: blue;
+    }
+    .sent {
+      text-align: right;
+      color: green;
+    }
   </style>
 </head>
 <body>
@@ -89,9 +97,16 @@
       const message = messageInput.value.trim();
       if (!message) return;
 
+      const sentMessage = document.createElement('div');
+      sentMessage.textContent = `You: ${message}`;
+      sentMessage.className = 'sent';
+      messages.appendChild(sentMessage);
+      messages.scrollTop = messages.scrollHeight;
+
       socket.send(message);
-      messageInput.value = '';
+      messageInput.value = '';  
     }
+
   </script>
 </body>
 </html>

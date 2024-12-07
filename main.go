@@ -32,6 +32,9 @@ func main() {
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		server.ServeWs(chatServer, w, r)
 	})
+
+	go chatServer.RunChatServer()
+
 	err := http.ListenAndServe(addr, nil)
 	if err != nil {
 		logger.Error.Fatalf("ListenAndServe failed: %v", err)
