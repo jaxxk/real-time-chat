@@ -1,51 +1,56 @@
 package server
 
-import "github.com.jaxxk.real-time-chat/logger"
+import (
+	"sync"
+
+	"github.com.jaxxk.real-time-chat/logger"
+)
 
 type ChatServer struct {
-	clients map[*Client]bool
-
-	messenger Messenger
-
-	register chan *Client
-
+	clients    sync.Map // Thread-safe map for clients
+	messenger  Messenger
+	register   chan *Client
 	unregister chan *Client
 }
 
 func NewChatServer() *ChatServer {
 	return &ChatServer{
-		clients:    make(map[*Client]bool),
 		messenger:  *newMessenger(),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 	}
 }
 
-func (c ChatServer) RunChatServer() {
+func (c *ChatServer) RunChatServer() {
 	for {
 		select {
-
 		case client := <-c.register:
+			// Register a new client
 			logger.Info.Printf("Registering client: %v", client.name)
-			c.clients[client] = true
+			c.clients.Store(client, true)
 
 		case client := <-c.unregister:
-			if _, ok := c.clients[client]; ok {
+			// Unregister an existing client
+			if _, ok := c.clients.Load(client); ok {
 				logger.Info.Printf("Unregistering client: %v", client.name)
-				delete(c.clients, client)
+				c.clients.Delete(client)
+				close(client.send) // Close the client's send channel
 			}
 
 		case message := <-c.messenger.broadcast:
-			for client := range c.clients {
+			// Broadcast the message to all clients
+			c.clients.Range(func(key, value interface{}) bool {
+				client := key.(*Client) // Cast to *Client
 				select {
 				case client.send <- message:
 				default:
-					// Remove clients that can't receive messages
+					// If the client is unresponsive, remove it
+					logger.Info.Printf("Removing unresponsive client: %v", client.name)
+					c.clients.Delete(client)
 					close(client.send)
-					delete(c.clients, client)
 				}
-			}
+				return true // Continue iteration
+			})
 		}
-
 	}
 }
