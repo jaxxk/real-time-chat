@@ -25,7 +25,7 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	logger.Init("server.log")
-	chatServer := server.NewChatServer()
+	chatServer := server.NewChatServer("")
 	logger.Info.Println("Starting Chat Server...")
 
 	http.HandleFunc("/", serveHome)

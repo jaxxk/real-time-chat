@@ -11,13 +11,18 @@ type ChatServer struct {
 	messenger  Messenger
 	register   chan *Client
 	unregister chan *Client
+	chatName   string
 }
 
-func NewChatServer() *ChatServer {
+func NewChatServer(chatName string) *ChatServer {
+	if chatName == "" {
+		chatName = "Home" // Set default value if none is provided
+	}
 	return &ChatServer{
 		messenger:  *newMessenger(),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
+		chatName:   chatName,
 	}
 }
 

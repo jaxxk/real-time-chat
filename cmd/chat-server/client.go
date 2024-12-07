@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com.jaxxk.real-time-chat/cmd/util"
 	"github.com.jaxxk.real-time-chat/logger"
 	"github.com/gorilla/websocket"
 )
@@ -153,4 +154,11 @@ func ServeWs(chatServer *ChatServer, w http.ResponseWriter, r *http.Request) {
 	client.chat.register <- client
 	go client.readPump(r.Context())
 	go client.writePump(r.Context())
+
+	rsp := struct {
+		chatName string
+	}{
+		chatName: client.chat.chatName,
+	}
+	util.RespondWithJson(w, http.StatusAccepted, rsp)
 }
