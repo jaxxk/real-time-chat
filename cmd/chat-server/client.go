@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com.jaxxk.real-time-chat/cmd/util"
 	"github.com.jaxxk.real-time-chat/logger"
 	"github.com/gorilla/websocket"
 )
@@ -130,7 +129,7 @@ func (c *Client) writeMessageWithQueue(message []byte) error {
 }
 
 // ServeWs handles WebSocket requests from the peer.
-func ServeWs(chatServer *ChatServer, w http.ResponseWriter, r *http.Request) {
+func ServeWs(chatServer *ChatServer, w http.ResponseWriter, r *http.Request, ctx context.Context) {
 	name := r.URL.Query().Get("name")
 	if name == "" {
 		http.Error(w, "Name parameter is required", http.StatusBadRequest)
@@ -152,13 +151,8 @@ func ServeWs(chatServer *ChatServer, w http.ResponseWriter, r *http.Request) {
 
 	// Register the client and start its read/write pumps
 	client.chat.register <- client
-	go client.readPump(r.Context())
-	go client.writePump(r.Context())
 
-	rsp := struct {
-		chatName string
-	}{
-		chatName: client.chat.chatName,
-	}
-	util.RespondWithJson(w, http.StatusAccepted, rsp)
+	go client.readPump(ctx)
+	go client.writePump(ctx)
+
 }

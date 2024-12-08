@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 
@@ -28,9 +29,12 @@ func main() {
 	chatServer := server.NewChatServer("")
 	logger.Info.Println("Starting Chat Server...")
 
+	serverCtx, serverCancel := context.WithCancel(context.Background())
+	defer serverCancel() // Cancel all contexts on server shutdown
+
 	http.HandleFunc("/", serveHome)
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		server.ServeWs(chatServer, w, r)
+		server.ServeWs(chatServer, w, r, serverCtx)
 	})
 
 	go chatServer.RunChatServer()
